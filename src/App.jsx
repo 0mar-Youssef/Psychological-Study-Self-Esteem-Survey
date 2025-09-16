@@ -109,7 +109,7 @@ const finalQuestions = [
   },
   {
     id: "frq_response",
-    label: "Optional: In 1-3 sentences, share anything about your experience that you think is important for our study.",
+    label: "In what ways do you think your family's expectations influenced your academic choices or stress levels?",
     type: "textarea",
   },
 ];
@@ -252,7 +252,7 @@ export default function App() {
     const topKeys = scoresArray.filter(([, v]) => v === maxValue).map(([k]) => k);
 
     // margin required above the second-highest to be considered dominant
-    const dominanceMargin = 0.1;
+    const dominanceMargin = 0.2;
     const sortedValuesDesc = scoresArray.map(([, v]) => v).sort((a, b) => b - a);
     const secondValue = sortedValuesDesc[1] ?? 0;
     const hasClearMargin = (maxValue - secondValue) >= dominanceMargin;
