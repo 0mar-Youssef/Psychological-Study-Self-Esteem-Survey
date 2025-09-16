@@ -63,7 +63,7 @@ const mainQuestions = [
   { id: "p5", label: "My parents let me do almost anything I wanted.", type: "likert", category: "permissive" },
   { id: "p6", label: "My parents rarely said 'no' to me.", type: "likert", category: "permissive" },
   { id: "p7", label: "My parents seemed like they didn't care what I did.", type: "likert", category: "uninvolved" },
-  { id: "p8", label: "I often felt alone at home.", type: "likert", category: "uninvolved" },
+  { id: "p8", label: "With my parents, I often felt alone at home (Emotionally).", type: "likert", category: "uninvolved" },
   
   // Self-Esteem & Identity 
   { id: "se1", label: "I feel proud of myself most of the time.", type: "likert", category: "selfesteem" },
@@ -87,7 +87,7 @@ const mainQuestions = [
   { id: "sl8", label: "I believe I can succeed even after failing.", type: "likert", category: "social_learning" },
 ];
 
-// Section D - Final Assessment Questions (2 questions)
+// Section D - Final Assessment Questions (includes FRQ)
 const finalQuestions = [
   {
     id: "stress_scale",
@@ -106,6 +106,11 @@ const finalQuestions = [
     label: "Do you believe you have low or high self-esteem?",
     type: "select",
     options: ["low", "high"],
+  },
+  {
+    id: "frq_response",
+    label: "Optional: In 1-3 sentences, share anything about your experience that you think is important for our study.",
+    type: "textarea",
   },
 ];
 
@@ -175,14 +180,14 @@ export default function App() {
     setRandomizedMainQuestions(shuffleArray(mainQuestions));
   }, []);
 
-  // Survey structure - 38 total questions
+  // Survey structure - total questions calculated dynamically
   const allQuestions = [
     ...sectionA,                    // 5 questions
     ...sectorQuestions,             // 6 questions  
     ...randomizedMainQuestions,     // 25 questions
-    ...finalQuestions,              // 2 questions
+    ...finalQuestions,              // final section (incl. FRQ)
     ...consentQuestions            // 1 question
-  ]; // Total: 38 questions
+  ];
 
   // Organize into pages of 6 questions each
   const questionsPerPage = 6;
@@ -376,12 +381,12 @@ export default function App() {
           <div className="mb-8">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
               <span>Progress</span>
-              <span>{Object.keys(responses).length} / 38</span>
+              <span>{Object.keys(responses).length} / {allQuestions.length}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(Object.keys(responses).length / 38) * 100}%` }}
+                style={{ width: `${(Object.keys(responses).length / allQuestions.length) * 100}%` }}
               ></div>
             </div>
           </div>

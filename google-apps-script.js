@@ -75,6 +75,9 @@ function doPost(e) {
       data.confidence_scale || '', // On a scale from 1-10, how confident are you
       data.self_esteem_perception || '', // Do you believe you have low or high self-esteem
       
+      // FRQ response (optional)
+      data.frq_response || '',
+      
       // Consent Question (1 question)
       data.consent || '',
       
@@ -197,6 +200,7 @@ function setupHeaders() {
     'Stress Scale (1-10)',
     'Confidence Scale (1-10)',
     'Self-Esteem Perception (low/high)',
+    'FRQ Response',
     
     // Consent
     'Consent for Quotes',
@@ -320,6 +324,7 @@ function createNewSpreadsheet() {
       'Stress Level',
       'Confidence Level',
       'Self-Esteem Perception',
+      'FRQ Response',
       
       // Full Data JSON
       'Full Scores JSON'
