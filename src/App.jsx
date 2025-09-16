@@ -245,15 +245,27 @@ export default function App() {
     const socialLearningIds = ['sl1', 'sl2', 'sl3', 'sl4', 'sl5', 'sl6', 'sl7', 'sl8'];
     const socialLearning = socialLearningIds.reduce((sum, id) => sum + (parseInt(responses[id]) || 0), 0) / socialLearningIds.length;
     
+    // Determine dominant parenting style with tie handling and margin threshold
+    const parentingScores = { authoritative, authoritarian, permissive, uninvolved };
+    const scoresArray = Object.entries(parentingScores);
+    const maxValue = Math.max(...scoresArray.map(([, v]) => v));
+    const topKeys = scoresArray.filter(([, v]) => v === maxValue).map(([k]) => k);
+
+    // margin required above the second-highest to be considered dominant
+    const dominanceMargin = 0.1;
+    const sortedValuesDesc = scoresArray.map(([, v]) => v).sort((a, b) => b - a);
+    const secondValue = sortedValuesDesc[1] ?? 0;
+    const hasClearMargin = (maxValue - secondValue) >= dominanceMargin;
+
+    const dominantParenting = (topKeys.length === 1 && hasClearMargin) ? topKeys[0] : 'mixed';
+
     return {
       parenting: {
         authoritative,
         authoritarian, 
         permissive,
         uninvolved,
-        dominant: Math.max(authoritative, authoritarian, permissive, uninvolved) === authoritative ? 'authoritative' :
-                 Math.max(authoritative, authoritarian, permissive, uninvolved) === authoritarian ? 'authoritarian' :
-                 Math.max(authoritative, authoritarian, permissive, uninvolved) === permissive ? 'permissive' : 'uninvolved'
+        dominant: dominantParenting
       },
       selfEsteem: finalSelfEsteem,
       socialLearning: socialLearning,
