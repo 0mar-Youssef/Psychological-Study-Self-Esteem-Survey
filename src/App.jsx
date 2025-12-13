@@ -491,7 +491,7 @@ export default function App() {
   };
 
   const saveToGoogleSheets = async (data) => {
-    const scriptUrl = 'https://script.google.com/macros/s/AKfycbzNHcGW-5WvT6OflN4_1_ZqrunvZssR7mQKBcLj-P1tovNxMyvjXo4qrgfYgi-_eMjPtA/exec';
+    const scriptUrl = 'https://script.google.com/macros/s/AKfycbwRFXzpXL19qFTeqHOAeyC_INB5qWTUy5QEuz-wz6nwyPmyJVckDvwYUpoc0ZHJkX8w5Q/exec';
     
     const response = await fetch(scriptUrl, {
       method: 'POST',
