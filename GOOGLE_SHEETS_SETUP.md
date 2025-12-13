@@ -9,7 +9,7 @@
 
 ## Step 2: Set Up Your Google Sheet
 
-1. Open your Google Sheet: [https://docs.google.com/spreadsheets/d/1A3DXr2e1TqpPwy2YmHlTpEBqzKOu6pJy2ND_7mk0onI/edit?usp=sharing](https://docs.google.com/spreadsheets/d/1A3DXr2e1TqpPwy2YmHlTpEBqzKOu6pJy2ND_7mk0onI/edit?usp=sharing)
+1. Open your Google Sheet: [https://docs.google.com/spreadsheets/d/1A3DXr2e1TqpPwy2YmHlTpEBqzKOu6pJy2ND_7mk0onI/edit?usp=sharing]
 2. In Google Apps Script, run the `setupHeaders()` function once to create column headers
 3. This will add all the necessary column headers for your survey data
 

@@ -11,7 +11,7 @@ function doPost(e) {
     // Get the active spreadsheet - try active first, then specific ID
     let sheet = SpreadsheetApp.getActiveSheet();
     if (!sheet) {
-      const spreadsheetId = '1A3DXr2e1TqpPwy2YmHlTpEBqzKOu6pJy2ND_7mk0onI';
+      const spreadsheetId = '1RPL8vnGd-AMM7QOTSUf7bY8JkQOPY24O6HDpxt8WnP0';
       const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
       sheet = spreadsheet.getActiveSheet();
     }
@@ -138,9 +138,9 @@ function setupHeaders() {
     // If no active sheet, try to use the specific spreadsheet ID
     if (!sheet) {
       console.log('No active sheet found, trying specific spreadsheet...');
-      const spreadsheetId = '1A3DXr2e1TqpPwy2YmHlTpEBqzKOu6pJy2ND_7mk0onI';
+      const spreadsheetId = '1RPL8vnGd-AMM7QOTSUf7bY8JkQOPY24O6HDpxt8WnP0';
       const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
-      sheet = spreadsheet.getActiveSheet();
+      sheet = spreadsheet.getSheetByName('Sheet1') || spreadsheet.getSheets()[0];
     }
     
     if (!sheet) {
@@ -221,8 +221,10 @@ function setupHeaders() {
     'Full Scores JSON'
   ];
   
-  // Only set headers if the sheet is empty
-  if (sheet.getLastRow() === 0) {
+  // Set headers if the first row is blank or sheet is empty
+  const firstRow = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
+  const firstRowIsBlank = firstRow.every(function(v) { return v === '' });
+  if (sheet.getLastRow() === 0 || firstRowIsBlank) {
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     
     // Format headers
@@ -233,7 +235,7 @@ function setupHeaders() {
     
     console.log('Headers set up successfully!');
   } else {
-    console.log('Sheet already has data. Headers not modified.');
+    console.log('Sheet already has data in the first row. Headers not modified.');
   }
   
   } catch (error) {
