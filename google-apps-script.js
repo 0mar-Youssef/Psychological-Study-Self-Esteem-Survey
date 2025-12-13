@@ -1,103 +1,89 @@
-// Google Apps Script for Google Sheets Integration
-// Copy this code into Google Apps Script (script.google.com) and deploy as web app
-
 function doPost(e) {
   try {
-    // Check if this is a valid POST request with data
     if (!e || !e.postData || !e.postData.contents) {
-      throw new Error('No POST data received. This function should be called via HTTP POST from the survey.');
+      throw new Error('No POST data received.');
     }
     
-    // Get the active spreadsheet - try active first, then specific ID
     let sheet = SpreadsheetApp.getActiveSheet();
     if (!sheet) {
-      const spreadsheetId = '1A3DXr2e1TqpPwy2YmHlTpEBqzKOu6pJy2ND_7mk0onI';
+      const spreadsheetId = 'YOUR_SPREADSHEET_ID_HERE';
       const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
       sheet = spreadsheet.getActiveSheet();
     }
     
-    // Parse the incoming data
     const data = JSON.parse(e.postData.contents);
     const timestamp = data.timestamp || new Date().toISOString();
     const scores = data.scores || {};
     
-    // Prepare the row data for 38-question survey
     const rowData = [
       timestamp,
-      // Demographics (5 questions)
+      
       data.age || '',
       data.gender || '',
-      data.major || '',
-      data.gpa || '',
-      data.livingWithParents || '',
+      data.gender_other || '',
+      data.ethnicity || '',
+      data.country || '',
+      data.education || '',
+      data.employment || '',
+      data.employment_other || '',
       
-      // Sector Questions (6 questions)
-      data.family_influence || '',
-      data.academic_pressure || '',
-      data.social_support || '',
-      data.financial_stress || '',
-      data.personal_confidence || '',
-      data.stress_management || '',
+      data.raised_by || '',
+      data.raised_by_other || '',
+      data.childhood_environment || '',
+      data.adults_emotionally_available || '',
+      data.comfortable_asking_help || '',
       
-      // Parenting Style Questions (8 questions)
-      data.p1 || '', // My parents explained why they made rules
-      data.p2 || '', // My parents balanced rules with kindness
-      data.p3 || '', // My parents expected me to obey without asking questions
-      data.p4 || '', // My parents often said 'Do it because I said so'
-      data.p5 || '', // My parents let me do almost anything I wanted
-      data.p6 || '', // My parents rarely said 'no' to me
-      data.p7 || '', // My parents seemed like they didn't care what I did
-      data.p8 || '', // I often felt alone at home
+      data.seen_therapist || '',
+      data.long_stress_periods || '',
+      data.overwhelming_emotions || '',
+      data.comfortable_expressing_feelings || '',
       
-      // Self-Esteem Questions (9 questions)
-      data.se1 || '', // I feel proud of myself most of the time
-      data.se2 || '', // I feel confident trying new activities
-      data.se3 || '', // I feel comfortable making decisions on my own
-      data.se4 || '', // I believe I can reach my goals
-      data.se5 || '', // I feel accepted by family and friends
-      data.se6 || '', // I sometimes doubt my abilities (reverse)
-      data.se7 || '', // I feel secure about my future
-      data.se8 || '', // I feel happy with who I are
-      data.se9 || '', // I feel like my life has purpose
+      data.close_friends_count || '',
+      data.judged_for_mistakes || '',
+      data.school_encouraged_help || '',
+      data.feel_supported_today || '',
+      data.rely_on_support || '',
       
-      // Social Learning Questions (8 questions)
-      data.sl1 || '', // I learn by watching how others solve problems
-      data.sl2 || '', // I believe failure is a chance to learn
-      data.sl3 || '', // I try to copy positive ways people deal with challenges
-      data.sl4 || '', // I believe effort matters more than luck
-      data.sl5 || '', // I stay calm when I see others staying calm in tough situations
-      data.sl6 || '', // I feel capable of improving my skills with practice
-      data.sl7 || '', // I keep trying until I succeed
-      data.sl8 || '', // I believe I can succeed even after failing
+      data.personality_type || '',
+      data.usual_reaction || '',
+      data.usual_reaction_other || '',
+      data.comfortable_vulnerability || '',
+      data.ashamed_needing_help || '',
       
-      // Final Assessment Questions (2 questions)
-      data.stress_scale || '', // On a scale from 1-10, how stressed are you
-      data.confidence_scale || '', // On a scale from 1-10, how confident are you
-      data.self_esteem_perception || '', // Do you believe you have low or high self-esteem
+      data.ec1 || '', data.ec2 || '', data.ec3 || '', data.ec4 || '', data.ec5 || '',
+      data.ec6 || '', data.ec7 || '', data.ec8 || '', data.ec9 || '', data.ec10 || '',
       
-      // FRQ response (optional)
-      data.frq_response || '',
+      data.cs1 || '', data.cs2 || '', data.cs3 || '', data.cs4 || '', data.cs5 || '',
+      data.cs6 || '', data.cs7 || '', data.cs8 || '', data.cs9 || '', data.cs10 || '',
       
-      // Consent Question (1 question)
-      data.consent || '',
+      data.fd1 || '', data.fd2 || '', data.fd3 || '', data.fd4 || '', data.fd5 || '',
+      data.fd6 || '', data.fd7 || '', data.fd8 || '', data.fd9 || '', data.fd10 || '',
       
-      // Calculated Scores
-      scores.parenting ? scores.parenting.authoritative || '' : '',
-      scores.parenting ? scores.parenting.authoritarian || '' : '',
-      scores.parenting ? scores.parenting.permissive || '' : '',
-      scores.parenting ? scores.parenting.uninvolved || '' : '',
-      scores.parenting ? scores.parenting.dominant || '' : '',
-      scores.selfEsteem || '',
-      scores.socialLearning || '',
-      scores.stressLevel || '',
-      scores.confidenceLevel || '',
-      scores.selfEsteemPerception || '',
+      data.rg1 || '', data.rg2 || '', data.rg3 || '', data.rg4 || '', data.rg5 || '',
+      data.rg6 || '', data.rg7 || '', data.rg8 || '', data.rg9 || '', data.rg10 || '',
       
-      // Full scores as JSON for advanced analysis
+      data.ss1 || '', data.ss2 || '', data.ss3 || '',
+      
+      data.rc1 || '', data.rc2 || '', data.rc3 || '', data.rc4 || '', data.rc5 || '',
+      data.rc6 || '', data.rc7 || '', data.rc8 || '', data.rc9 || '', data.rc10 || '',
+      
+      data.consent_use_results || '',
+      data.anything_else || '',
+      
+      data.questionsAnswered || '',
+      data.adaptiveQuestionsCount || '',
+      scores.shameScoreFromInitial || '',
+      scores.overallAverage || '',
+      scores.sections ? scores.sections.earlyChildhood || '' : '',
+      scores.sections ? scores.sections.childhoodSocial || '' : '',
+      scores.sections ? scores.sections.familyDynamics || '' : '',
+      scores.sections ? scores.sections.recovery || '' : '',
+      scores.sections ? scores.sections.supportSystems || '' : '',
+      scores.sections ? scores.sections.readiness || '' : '',
+      
       JSON.stringify(scores)
     ];
     
-    // Add the row to the sheet
     sheet.appendRow(rowData);
     
     return ContentService
@@ -118,27 +104,16 @@ function doPost(e) {
 
 function doGet(e) {
   return ContentService
-    .createTextOutput('Survey data collection endpoint is active. Send POST requests to submit survey data.')
+    .createTextOutput('Survey endpoint active. Send POST requests to submit data.')
     .setMimeType(ContentService.MimeType.TEXT);
 }
 
-// Test function - run this to test the script without POST data
-function testScript() {
-  console.log('Google Apps Script is working correctly!');
-  console.log('To test the doPost function, submit a survey from your website.');
-  return 'Script test completed successfully';
-}
-
-// Function to set up the sheet headers (run this once after creating your spreadsheet)
 function setupHeaders() {
   try {
-    // Try to get the active sheet first
     let sheet = SpreadsheetApp.getActiveSheet();
     
-    // If no active sheet, try to use the specific spreadsheet ID
     if (!sheet) {
-      console.log('No active sheet found, trying specific spreadsheet...');
-      const spreadsheetId = '1A3DXr2e1TqpPwy2YmHlTpEBqzKOu6pJy2ND_7mk0onI';
+      const spreadsheetId = 'YOUR_SPREADSHEET_ID_HERE';
       const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
       sheet = spreadsheet.getActiveSheet();
     }
@@ -148,200 +123,269 @@ function setupHeaders() {
     }
   
     const headers = [
-    'Timestamp',
-    
-    // Demographics (5 questions)
-    'Age',
-    'Gender', 
-    'Major',
-    'GPA',
-    'Living with Parents',
-    
-    // Sector Questions (6 questions)
-    'Family Influence',
-    'Academic Pressure', 
-    'Social Support',
-    'Financial Stress',
-    'Personal Confidence',
-    'Stress Management',
-    
-    // Parenting Style Questions (8 questions)
-    'P1 - Parents explained rules',
-    'P2 - Parents balanced rules with kindness',
-    'P3 - Expected obedience without questions', 
-    'P4 - Parents said "because I said so"',
-    'P5 - Parents let me do anything',
-    'P6 - Parents rarely said no',
-    'P7 - Parents seemed not to care',
-    'P8 - Often felt alone at home',
-    
-    // Self-Esteem Questions (9 questions)
-    'SE1 - Feel proud of myself',
-    'SE2 - Confident trying new activities',
-    'SE3 - Comfortable making decisions',
-    'SE4 - Believe I can reach goals',
-    'SE5 - Feel accepted by family/friends',
-    'SE6 - Sometimes doubt abilities (R)',
-    'SE7 - Feel secure about future',
-    'SE8 - Happy with who I am',
-    'SE9 - Life has purpose',
-    
-    // Social Learning Questions (8 questions)
-    'SL1 - Learn by watching others',
-    'SL2 - Failure is chance to learn',
-    'SL3 - Copy positive ways to deal with challenges',
-    'SL4 - Effort matters more than luck',
-    'SL5 - Stay calm when others stay calm',
-    'SL6 - Capable of improving skills',
-    'SL7 - Keep trying until succeed',
-    'SL8 - Can succeed even after failing',
-    
-    // Final Assessment Questions (2 questions)
-    'Stress Scale (1-10)',
-    'Confidence Scale (1-10)',
-    'Self-Esteem Perception (low/high)',
-    'FRQ Response',
-    
-    // Consent
-    'Consent for Quotes',
-    
-    // Calculated Scores
-    'Authoritative Score',
-    'Authoritarian Score',
-    'Permissive Score', 
-    'Uninvolved Score',
-    'Dominant Parenting Style',
-    'Self-Esteem Score',
-    'Social Learning Score',
-    'Stress Level',
-    'Confidence Level',
-    'Self-Esteem Perception',
-    
-    // Full Data JSON
-    'Full Scores JSON'
-  ];
+      'Timestamp',
+      
+      'Age',
+      'Gender', 
+      'Gender (Other)',
+      'Ethnicity',
+      'Country',
+      'Education',
+      'Employment',
+      'Employment (Other)',
+      
+      'Raised By',
+      'Raised By (Other)',
+      'Childhood Environment',
+      'Adults Emotionally Available',
+      'Comfortable Asking Help (Childhood)',
+      
+      'Seen Therapist',
+      'Long Stress Periods',
+      'Overwhelming Emotions',
+      'Comfortable Expressing Feelings',
+      
+      'Close Friends Count',
+      'Judged for Mistakes',
+      'School Encouraged Help',
+      'Feel Supported Today',
+      'Rely on Support',
+      
+      'Personality Type',
+      'Usual Reaction',
+      'Usual Reaction (Other)',
+      'Comfortable with Vulnerability',
+      'Ashamed Needing Help',
+      
+      'EC1 - Not safe expressing emotions',
+      'EC2 - Adults reacted negatively',
+      'EC3 - Punished for showing sadness',
+      'EC4 - Uncomfortable asking caretakers',
+      'EC5 - Hid problems from family',
+      'EC6 - Mistakes unacceptable',
+      'EC7 - Not supported when struggling',
+      'EC8 - Feared judgment by family',
+      'EC9 - Felt like burden',
+      'EC10 - Learned not to talk about feelings',
+      
+      'CS1 - Not safe sharing with peers',
+      'CS2 - Bullied for vulnerability',
+      'CS3 - Compared self negatively',
+      'CS4 - No trusted adult outside family',
+      'CS5 - Hid problems from friends',
+      'CS6 - Believed others stronger',
+      'CS7 - Felt misunderstood by friends',
+      'CS8 - Feared embarrassment at school',
+      'CS9 - Kept quiet when needed help',
+      'CS10 - Pressure to appear strong',
+      
+      'FD1 - Family no open communication',
+      'FD2 - Discouraged from vulnerability',
+      'FD3 - Pressure to be strong one',
+      'FD4 - Family minimized problems',
+      'FD5 - Feared disappointing family',
+      'FD6 - Learned to solve alone',
+      'FD7 - Household discouraged emotions',
+      'FD8 - Responsible for keeping peace',
+      'FD9 - Rarely felt understood',
+      'FD10 - Family saw help as weakness',
+      
+      'RG1 - Still feel unsafe asking help',
+      'RG2 - Vulnerability is weakness',
+      'RG3 - Uncomfortable being honest',
+      'RG4 - People dont care about me',
+      'RG5 - Help doesnt make things better',
+      'RG6 - Opening up led to negative',
+      'RG7 - Avoid reaching out when overwhelmed',
+      'RG8 - Risky/shameful to ask support',
+      'RG9 - Not hopeful about communication',
+      'RG10 - Stuck in emotional struggles',
+      
+      'SS1 - Negative experiences with mentors',
+      'SS2 - Uncomfortable with different background',
+      'SS3 - Less safe in person vs online',
+      
+      'RC1 - Resistant to asking help',
+      'RC2 - Very critical of self',
+      'RC3 - Closed to healthier coping',
+      'RC4 - Dont deserve support',
+      'RC5 - Afraid to share feelings',
+      'RC6 - Doubt change is possible',
+      'RC7 - Uncomfortable challenging silence',
+      'RC8 - Professional help makes anxious',
+      'RC9 - Not hopeful about relationships',
+      'RC10 - Avoid understanding delay',
+      
+      'Consent to Use Results',
+      'Anything Else (Open Response)',
+      
+      'Questions Answered',
+      'Adaptive Questions Count',
+      'Shame Score (Initial)',
+      'Overall Average Score',
+      'Early Childhood Score',
+      'Childhood Social Score',
+      'Family Dynamics Score',
+      'Recovery Score',
+      'Support Systems Score',
+      'Readiness Score',
+      
+      'Full Scores JSON'
+    ];
   
-  // Only set headers if the sheet is empty
-  if (sheet.getLastRow() === 0) {
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    if (sheet.getLastRow() === 0) {
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      
+      const headerRange = sheet.getRange(1, 1, 1, headers.length);
+      headerRange.setFontWeight('bold');
+      headerRange.setBackground('#4285f4');
+      headerRange.setFontColor('white');
+      
+      sheet.setFrozenRows(1);
+      
+      console.log('Headers set up successfully! Total columns: ' + headers.length);
+    } else {
+      console.log('Sheet already has data. Clear the sheet first or create a new one.');
+    }
     
-    // Format headers
-    const headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setFontWeight('bold');
-    headerRange.setBackground('#4285f4');
-    headerRange.setFontColor('white');
-    
-    console.log('Headers set up successfully!');
-  } else {
-    console.log('Sheet already has data. Headers not modified.');
-  }
-  
   } catch (error) {
     console.error('Error in setupHeaders:', error);
-    throw new Error('Failed to setup headers: ' + error.toString() + 
-      '\n\nMake sure you have:\n' +
-      '1. Created a Google Sheet\n' + 
-      '2. Opened the Google Sheet in another tab\n' +
-      '3. Run this function while the sheet is active\n' +
-      '\nAlternatively, run createNewSpreadsheet() to create a new one automatically.');
+    throw new Error('Failed to setup headers: ' + error.toString());
   }
 }
 
-// Alternative function to create a new spreadsheet with headers
 function createNewSpreadsheet() {
   try {
-    // Create a new spreadsheet
-    const spreadsheet = SpreadsheetApp.create('Survey Responses - Parenting Styles Research');
+    const spreadsheet = SpreadsheetApp.create('Help-Seeking Survey Responses');
     const sheet = spreadsheet.getActiveSheet();
     
     console.log('Created new spreadsheet:', spreadsheet.getUrl());
+    console.log('Spreadsheet ID:', spreadsheet.getId());
     
     const headers = [
       'Timestamp',
       
-      // Demographics (5 questions)
       'Age',
       'Gender', 
-      'Major',
-      'GPA',
-      'Living with Parents',
+      'Gender (Other)',
+      'Ethnicity',
+      'Country',
+      'Education',
+      'Employment',
+      'Employment (Other)',
       
-      // Sector Questions (6 questions)
-      'Family Influence',
-      'Academic Pressure', 
-      'Social Support',
-      'Financial Stress',
-      'Personal Confidence',
-      'Stress Management',
+      'Raised By',
+      'Raised By (Other)',
+      'Childhood Environment',
+      'Adults Emotionally Available',
+      'Comfortable Asking Help (Childhood)',
       
-      // Parenting Style Questions (8 questions)
-      'P1 - Parents explained rules',
-      'P2 - Parents balanced rules with kindness',
-      'P3 - Expected obedience without questions', 
-      'P4 - Parents said "because I said so"',
-      'P5 - Parents let me do anything',
-      'P6 - Parents rarely said no',
-      'P7 - Parents seemed not to care',
-      'P8 - Often felt alone at home',
+      'Seen Therapist',
+      'Long Stress Periods',
+      'Overwhelming Emotions',
+      'Comfortable Expressing Feelings',
       
-      // Self-Esteem Questions (9 questions)
-      'SE1 - Feel proud of myself',
-      'SE2 - Confident trying new activities',
-      'SE3 - Comfortable making decisions',
-      'SE4 - Believe I can reach goals',
-      'SE5 - Feel accepted by family/friends',
-      'SE6 - Sometimes doubt abilities (R)',
-      'SE7 - Feel secure about future',
-      'SE8 - Happy with who I am',
-      'SE9 - Life has purpose',
+      'Close Friends Count',
+      'Judged for Mistakes',
+      'School Encouraged Help',
+      'Feel Supported Today',
+      'Rely on Support',
       
-      // Social Learning Questions (8 questions)
-      'SL1 - Learn by watching others',
-      'SL2 - Failure is chance to learn',
-      'SL3 - Copy positive ways to deal with challenges',
-      'SL4 - Effort matters more than luck',
-      'SL5 - Stay calm when others stay calm',
-      'SL6 - Capable of improving skills',
-      'SL7 - Keep trying until succeed',
-      'SL8 - Can succeed even after failing',
+      'Personality Type',
+      'Usual Reaction',
+      'Usual Reaction (Other)',
+      'Comfortable with Vulnerability',
+      'Ashamed Needing Help',
       
-      // Final Assessment Questions (2 questions)
-      'Stress Scale (1-10)',
-      'Confidence Scale (1-10)',
-      'Self-Esteem Perception (low/high)',
+      'EC1 - Not safe expressing emotions',
+      'EC2 - Adults reacted negatively',
+      'EC3 - Punished for showing sadness',
+      'EC4 - Uncomfortable asking caretakers',
+      'EC5 - Hid problems from family',
+      'EC6 - Mistakes unacceptable',
+      'EC7 - Not supported when struggling',
+      'EC8 - Feared judgment by family',
+      'EC9 - Felt like burden',
+      'EC10 - Learned not to talk about feelings',
       
-      // Consent
-      'Consent for Quotes',
+      'CS1 - Not safe sharing with peers',
+      'CS2 - Bullied for vulnerability',
+      'CS3 - Compared self negatively',
+      'CS4 - No trusted adult outside family',
+      'CS5 - Hid problems from friends',
+      'CS6 - Believed others stronger',
+      'CS7 - Felt misunderstood by friends',
+      'CS8 - Feared embarrassment at school',
+      'CS9 - Kept quiet when needed help',
+      'CS10 - Pressure to appear strong',
       
-      // Calculated Scores
-      'Authoritative Score',
-      'Authoritarian Score',
-      'Permissive Score', 
-      'Uninvolved Score',
-      'Dominant Parenting Style',
-      'Self-Esteem Score',
-      'Social Learning Score',
-      'Stress Level',
-      'Confidence Level',
-      'Self-Esteem Perception',
-      'FRQ Response',
+      'FD1 - Family no open communication',
+      'FD2 - Discouraged from vulnerability',
+      'FD3 - Pressure to be strong one',
+      'FD4 - Family minimized problems',
+      'FD5 - Feared disappointing family',
+      'FD6 - Learned to solve alone',
+      'FD7 - Household discouraged emotions',
+      'FD8 - Responsible for keeping peace',
+      'FD9 - Rarely felt understood',
+      'FD10 - Family saw help as weakness',
       
-      // Full Data JSON
+      'RG1 - Still feel unsafe asking help',
+      'RG2 - Vulnerability is weakness',
+      'RG3 - Uncomfortable being honest',
+      'RG4 - People dont care about me',
+      'RG5 - Help doesnt make things better',
+      'RG6 - Opening up led to negative',
+      'RG7 - Avoid reaching out when overwhelmed',
+      'RG8 - Risky/shameful to ask support',
+      'RG9 - Not hopeful about communication',
+      'RG10 - Stuck in emotional struggles',
+      
+      'SS1 - Negative experiences with mentors',
+      'SS2 - Uncomfortable with different background',
+      'SS3 - Less safe in person vs online',
+      
+      'RC1 - Resistant to asking help',
+      'RC2 - Very critical of self',
+      'RC3 - Closed to healthier coping',
+      'RC4 - Dont deserve support',
+      'RC5 - Afraid to share feelings',
+      'RC6 - Doubt change is possible',
+      'RC7 - Uncomfortable challenging silence',
+      'RC8 - Professional help makes anxious',
+      'RC9 - Not hopeful about relationships',
+      'RC10 - Avoid understanding delay',
+      
+      'Consent to Use Results',
+      'Anything Else (Open Response)',
+      
+      'Questions Answered',
+      'Adaptive Questions Count',
+      'Shame Score (Initial)',
+      'Overall Average Score',
+      'Early Childhood Score',
+      'Childhood Social Score',
+      'Family Dynamics Score',
+      'Recovery Score',
+      'Support Systems Score',
+      'Readiness Score',
+      
       'Full Scores JSON'
     ];
     
-    // Set headers
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     
-    // Format headers
     const headerRange = sheet.getRange(1, 1, 1, headers.length);
     headerRange.setFontWeight('bold');
     headerRange.setBackground('#4285f4');
     headerRange.setFontColor('white');
     
+    sheet.setFrozenRows(1);
+    
     console.log('Spreadsheet created successfully!');
     console.log('URL:', spreadsheet.getUrl());
-    console.log('Copy this URL and open it to view your data collection sheet.');
+    console.log('IMPORTANT: Copy the Spreadsheet ID and update it in the doPost function!');
+    console.log('Spreadsheet ID:', spreadsheet.getId());
     
     return spreadsheet.getUrl();
     
