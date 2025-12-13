@@ -1,165 +1,264 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-// Section A - Demographics (5 questions - always first)
-const sectionA = [
-  { id: "age", label: "How old are you?", type: "number" },
+const demographicsQuestions = [
+  { 
+    id: "age", 
+    label: "What is your age?", 
+    type: "number" 
+  },
   {
     id: "gender",
-    label: "What gender are you?",
+    label: "What is your gender?",
     type: "select",
-    options: ["male", "female", "other"],
+    options: ["Male", "Female", "Prefer not to say", "Other"],
+    hasOther: true,
   },
-  { id: "major", label: "What is your major?", type: "text" },
-  { id: "gpa", label: "What is your current GPA?", type: "number", step: "0.01" },
+  { 
+    id: "ethnicity", 
+    label: "What is your ethnicity? (optional)", 
+    type: "text",
+    required: false 
+  },
+  { 
+    id: "country", 
+    label: "What country do you currently live in?", 
+    type: "text" 
+  },
   {
-    id: "livingWithParents",
-    label: "Are you currently living with your parents?",
+    id: "education",
+    label: "What is your highest level of education completed?",
     type: "select",
-    options: ["yes", "no"],
+    options: [
+      "Some high school",
+      "High school diploma/GED",
+      "Some college",
+      "Associate's degree",
+      "Bachelor's degree",
+      "Graduate degree"
+    ],
+  },
+  {
+    id: "employment",
+    label: "What is your current employment status?",
+    type: "select",
+    options: ["Student", "Employed full-time", "Employed part-time", "Unemployed", "Other"],
+    hasOther: true,
   },
 ];
 
-// Section B - Sector Questions (6 questions - determine profile)
-const sectorQuestions = [
+const familyQuestions = [
   {
-    id: "family_influence",
-    label: "My family's expectations heavily influenced my academic choices.",
+    id: "raised_by",
+    label: "Who primarily raised you?",
+    type: "select",
+    options: ["Both parents", "One parent", "Grandparents", "Foster care", "Other"],
+    hasOther: true,
+  },
+  {
+    id: "childhood_environment",
+    label: "How would you describe your childhood home environment?",
+    type: "select",
+    options: ["Supportive", "Somewhat supportive", "Neutral", "Unstable", "Chaotic"],
+  },
+  {
+    id: "adults_emotionally_available",
+    label: "Were the adults around you emotionally available?",
     type: "likert",
   },
   {
-    id: "academic_pressure",
-    label: "I feel academic pressure on a daily basis.",
-    type: "likert",
-  },
-  {
-    id: "social_support",
-    label: "I feel supported by my friends and social circle.",
-    type: "likert",
-  },
-  {
-    id: "financial_stress",
-    label: "Financial concerns affect my daily life.",
-    type: "likert",
-  },
-  {
-    id: "personal_confidence",
-    label: "I feel confident about achieving my future goals.",
-    type: "likert",
-  },
-  {
-    id: "stress_management",
-    label: "I handle stress and challenges well.",
+    id: "comfortable_asking_help",
+    label: "Growing up, how comfortable were you asking for help from your caregivers?",
     type: "likert",
   },
 ];
 
-// Section C - Main Questions (25 questions - strategically selected for maximum research value)
-const mainQuestions = [
-  // Parenting Style 
-  { id: "p1", label: "My parents explained why they made rules.", type: "likert", category: "authoritative" },
-  { id: "p2", label: "My parents balanced rules with kindness.", type: "likert", category: "authoritative" },
-  { id: "p3", label: "My parents expected me to obey without asking questions.", type: "likert", category: "authoritarian" },
-  { id: "p4", label: "My parents often said 'Do it because I said so.'", type: "likert", category: "authoritarian" },
-  { id: "p5", label: "My parents let me do almost anything I wanted.", type: "likert", category: "permissive" },
-  { id: "p6", label: "My parents rarely said 'no' to me.", type: "likert", category: "permissive" },
-  { id: "p7", label: "My parents seemed like they didn't care what I did.", type: "likert", category: "uninvolved" },
-  { id: "p8", label: "With my parents, I often felt alone at home (Emotionally).", type: "likert", category: "uninvolved" },
-  
-  // Self-Esteem & Identity 
-  { id: "se1", label: "I feel proud of myself most of the time.", type: "likert", category: "selfesteem" },
-  { id: "se2", label: "I feel confident trying new activities.", type: "likert", category: "selfesteem" },
-  { id: "se3", label: "I feel comfortable making decisions on my own.", type: "likert", category: "selfesteem" },
-  { id: "se4", label: "I believe I can reach my goals.", type: "likert", category: "selfesteem" },
-  { id: "se5", label: "I feel accepted by family and friends.", type: "likert", category: "selfesteem" },
-  { id: "se6", label: "I sometimes doubt my abilities.", type: "likert", category: "selfesteem", reverse: true },
-  { id: "se7", label: "I feel secure about my future.", type: "likert", category: "selfesteem" },
-  { id: "se8", label: "I feel happy with who I am.", type: "likert", category: "selfesteem" },
-  { id: "se9", label: "I feel like my life has purpose.", type: "likert", category: "selfesteem" },
-  
-  // Social Learning & Coping
-  { id: "sl1", label: "I learn by watching how others solve problems.", type: "likert", category: "social_learning" },
-  { id: "sl2", label: "I believe failure is a chance to learn.", type: "likert", category: "social_learning" },
-  { id: "sl3", label: "I try to copy positive ways people deal with challenges.", type: "likert", category: "social_learning" },
-  { id: "sl4", label: "I believe effort matters more than luck.", type: "likert", category: "social_learning" },
-  { id: "sl5", label: "I stay calm when I see others staying calm in tough situations.", type: "likert", category: "social_learning" },
-  { id: "sl6", label: "I feel capable of improving my skills with practice.", type: "likert", category: "social_learning" },
-  { id: "sl7", label: "I keep trying until I succeed.", type: "likert", category: "social_learning" },
-  { id: "sl8", label: "I believe I can succeed even after failing.", type: "likert", category: "social_learning" },
+const healthQuestions = [
+  {
+    id: "seen_therapist",
+    label: "Have you ever seen a therapist or counselor?",
+    type: "yesno",
+  },
+  {
+    id: "long_stress_periods",
+    label: "Have you ever experienced long periods of stress, anxiety, or depression?",
+    type: "yesno",
+  },
+  {
+    id: "overwhelming_emotions",
+    label: "Do you currently struggle with overwhelming emotions?",
+    type: "yesno",
+  },
+  {
+    id: "comfortable_expressing_feelings",
+    label: "How comfortable are you expressing your feelings to others?",
+    type: "likert",
+  },
 ];
 
-// Section D - Final Assessment Questions (includes FRQ)
+const socialQuestions = [
+  {
+    id: "close_friends_count",
+    label: "How many close friends do you currently have?",
+    type: "select",
+    options: ["0", "1-2", "3-5", "6-10", "More than 10"],
+  },
+  {
+    id: "judged_for_mistakes",
+    label: "Growing up, did you feel judged by others when you made mistakes?",
+    type: "likert",
+  },
+  {
+    id: "school_encouraged_help",
+    label: "Did your school environment encourage asking for help?",
+    type: "likert",
+  },
+  {
+    id: "feel_supported_today",
+    label: "Do you feel supported by the people around you today?",
+    type: "likert",
+  },
+  {
+    id: "rely_on_support",
+    label: "How often do you rely on your friends or family when you're struggling?",
+    type: "likert",
+  },
+];
+
+const personalityQuestions = [
+  {
+    id: "personality_type",
+    label: "How would you describe your personality?",
+    type: "select",
+    options: ["Introverted", "Extroverted", "Ambivert"],
+  },
+  {
+    id: "usual_reaction",
+    label: "When something is wrong, what is your usual reaction?",
+    type: "select",
+    options: ["Hide it", "Talk to someone", "Try to fix it alone", "Distract myself", "Other"],
+    hasOther: true,
+  },
+  {
+    id: "comfortable_vulnerability",
+    label: "How comfortable are you with showing vulnerability?",
+    type: "likert",
+  },
+  {
+    id: "ashamed_needing_help",
+    label: "Do you tend to feel ashamed when you need help?",
+    type: "likert",
+  },
+];
+
+const earlyChildhoodQuestions = [
+  { id: "ec1", label: "I did not feel safe expressing my emotions as a child.", type: "likert", negative: true },
+  { id: "ec2", label: "Adults in my childhood home often reacted negatively when I was upset.", type: "likert", negative: true },
+  { id: "ec3", label: "I was punished or criticized for showing sadness.", type: "likert", negative: true },
+  { id: "ec4", label: "I felt uncomfortable asking my caretakers for help.", type: "likert", negative: true },
+  { id: "ec5", label: "I often hid my problems to avoid upsetting my family.", type: "likert", negative: true },
+  { id: "ec6", label: "I believed mistakes were unacceptable in my household.", type: "likert", negative: true },
+  { id: "ec7", label: "I did not feel supported when I struggled with something.", type: "likert", negative: true },
+  { id: "ec8", label: "I feared being judged by family members.", type: "likert", negative: true },
+  { id: "ec9", label: "I felt like a burden when I needed help.", type: "likert", negative: true },
+  { id: "ec10", label: "I learned early on not to talk about my feelings.", type: "likert", negative: true },
+];
+
+const childhoodSocialQuestions = [
+  { id: "cs1", label: "I did not feel safe sharing my struggles with peers.", type: "likert", negative: true },
+  { id: "cs2", label: "I was bullied or teased for showing vulnerability.", type: "likert", negative: true },
+  { id: "cs3", label: "I often compared myself negatively to other kids.", type: "likert", negative: true },
+  { id: "cs4", label: "I did not have any adult outside my family that I trusted.", type: "likert", negative: true },
+  { id: "cs5", label: "I hid personal problems from friends.", type: "likert", negative: true },
+  { id: "cs6", label: "I believed other kids were stronger or more capable than me.", type: "likert", negative: true },
+  { id: "cs7", label: "I felt misunderstood by my childhood friends.", type: "likert", negative: true },
+  { id: "cs8", label: "I feared embarrassment at school.", type: "likert", negative: true },
+  { id: "cs9", label: "I kept quiet even when I needed help.", type: "likert", negative: true },
+  { id: "cs10", label: "I felt pressure to appear \"strong\" among peers.", type: "likert", negative: true },
+];
+
+const familyDynamicsQuestions = [
+  { id: "fd1", label: "My family did not communicate openly about emotions.", type: "likert", negative: true },
+  { id: "fd2", label: "I was discouraged from showing vulnerability.", type: "likert", negative: true },
+  { id: "fd3", label: "I felt pressure to be \"the strong one\" in the family.", type: "likert", negative: true },
+  { id: "fd4", label: "Family members minimized or dismissed my problems.", type: "likert", negative: true },
+  { id: "fd5", label: "I feared disappointing my family by asking for help.", type: "likert", negative: true },
+  { id: "fd6", label: "I learned to solve problems without support.", type: "likert", negative: true },
+  { id: "fd7", label: "My household discouraged emotional expression.", type: "likert", negative: true },
+  { id: "fd8", label: "I felt responsible for keeping peace in my home.", type: "likert", negative: true },
+  { id: "fd9", label: "I rarely felt understood by family members.", type: "likert", negative: true },
+  { id: "fd10", label: "My family believed asking for help was a sign of weakness.", type: "likert", negative: true },
+];
+
+const recoveryQuestions = [
+  { id: "rg1", label: "I still feel unsafe asking for help, even compared to the past.", type: "likert", negative: true },
+  { id: "rg2", label: "I believe vulnerability is a weakness.", type: "likert", negative: true },
+  { id: "rg3", label: "I feel uncomfortable being honest about my emotions.", type: "likert", negative: true },
+  { id: "rg4", label: "I feel like people around me don't really care about my well-being.", type: "likert", negative: true },
+  { id: "rg5", label: "I don't believe seeking help actually makes things better.", type: "likert", negative: true },
+  { id: "rg6", label: "Opening up has mostly led to negative experiences for me.", type: "likert", negative: true },
+  { id: "rg7", label: "I avoid reaching out even when I feel overwhelmed.", type: "likert", negative: true },
+  { id: "rg8", label: "I believe it's risky or shameful to ask for support.", type: "likert", negative: true },
+  { id: "rg9", label: "I don't feel hopeful about improving how I communicate.", type: "likert", negative: true },
+  { id: "rg10", label: "I feel stuck in the way I deal with emotional struggles.", type: "likert", negative: true },
+];
+
+const supportSystemsQuestions = [
+  { id: "ss1", label: "I have mostly had negative experiences with teachers, counselors, or mentors.", type: "likert", negative: true },
+  { id: "ss2", label: "I am uncomfortable seeking help from people who don't share my background or language.", type: "likert", negative: true },
+  { id: "ss3", label: "I feel less safe getting help in person compared to online.", type: "likert", negative: true },
+];
+
+const readinessQuestions = [
+  { id: "rc1", label: "I feel resistant to becoming more comfortable asking for help.", type: "likert", negative: true },
+  { id: "rc2", label: "I am very critical of myself when I struggle.", type: "likert", negative: true },
+  { id: "rc3", label: "I feel closed off to learning healthier ways to cope.", type: "likert", negative: true },
+  { id: "rc4", label: "I don't really believe I deserve support.", type: "likert", negative: true },
+  { id: "rc5", label: "I am afraid to practice sharing my feelings with others.", type: "likert", negative: true },
+  { id: "rc6", label: "I doubt that real change is possible for me.", type: "likert", negative: true },
+  { id: "rc7", label: "I feel uncomfortable challenging silence in my family or community.", type: "likert", negative: true },
+  { id: "rc8", label: "The idea of professional help makes me anxious or resistant.", type: "likert", negative: true },
+  { id: "rc9", label: "I don't feel hopeful about building safer relationships.", type: "likert", negative: true },
+  { id: "rc10", label: "I often avoid trying to understand why I delay asking for help.", type: "likert", negative: true },
+];
+
 const finalQuestions = [
   {
-    id: "stress_scale",
-    label: "On a scale from 1-10, how stressed are you currently?",
-    type: "likert",
-    scale: "stress10",
+    id: "consent_use_results",
+    label: "Will you be comfortable with us using your results for our research?",
+    type: "yesno",
   },
   {
-    id: "confidence_scale", 
-    label: "On a scale from 1-10, how confident are you with your choices?",
-    type: "likert",
-    scale: "confidence10",
-  },
-  {
-    id: "self_esteem_perception",
-    label: "Do you believe you have low or high self-esteem?",
-    type: "select",
-    options: ["low", "high"],
-  },
-  {
-    id: "frq_response",
-    label: "In what ways do you think your family's expectations influenced your academic choices or stress levels?",
+    id: "anything_else",
+    label: "Would you like to share anything else?",
     type: "textarea",
+    required: false,
   },
 ];
 
-// Section E - Consent Question (1 question)
-const consentQuestions = [
-  {
-    id: "consent",
-    label: "Do you give permission for your anonymous responses to be quoted in our research paper or presentation?",
-    type: "select",
-    options: ["yes", "no"],
-  },
+const initialQuestions = [
+  ...demographicsQuestions,
+  ...familyQuestions,
+  ...healthQuestions,
+  ...socialQuestions,
+  ...personalityQuestions,
 ];
 
-// Likert scale options
-const likertScales = {
-  standard: [
-    { value: 1, label: "Strongly disagree" },
-    { value: 2, label: "Disagree" },
-    { value: 3, label: "Neither" },
-    { value: 4, label: "Agree" },
-    { value: 5, label: "Strongly agree" },
-  ],
-  stress10: [
-    { value: 1, label: "1 - Not stressed at all" },
-    { value: 2, label: "2" },
-    { value: 3, label: "3" },
-    { value: 4, label: "4" },
-    { value: 5, label: "5" },
-    { value: 6, label: "6" },
-    { value: 7, label: "7" },
-    { value: 8, label: "8" },
-    { value: 9, label: "9" },
-    { value: 10, label: "10 - Extremely stressed" },
-  ],
-  confidence10: [
-    { value: 1, label: "1 - Not confident at all" },
-    { value: 2, label: "2" },
-    { value: 3, label: "3" },
-    { value: 4, label: "4" },
-    { value: 5, label: "5" },
-    { value: 6, label: "6" },
-    { value: 7, label: "7" },
-    { value: 8, label: "8" },
-    { value: 9, label: "9" },
-    { value: 10, label: "10 - Extremely confident" },
-  ],
-};
+const allFollowUpQuestions = [
+  ...earlyChildhoodQuestions,
+  ...childhoodSocialQuestions,
+  ...familyDynamicsQuestions,
+  ...recoveryQuestions,
+  ...supportSystemsQuestions,
+  ...readinessQuestions,
+];
 
-// Function to shuffle array
+const likertScale = [
+  { value: 4, label: "Strongly Agree" },
+  { value: 3, label: "Agree" },
+  { value: 2, label: "Disagree" },
+  { value: 1, label: "Strongly Disagree" },
+];
+
 const shuffleArray = (array) => {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -169,57 +268,169 @@ const shuffleArray = (array) => {
   return shuffled;
 };
 
+const calculateShameScore = (responses) => {
+  let shameScore = 0;
+
+  if (responses.long_stress_periods === "yes") shameScore += 2;
+  if (responses.overwhelming_emotions === "yes") shameScore += 2;
+  
+  if (responses.childhood_environment === "Unstable") shameScore += 2;
+  if (responses.childhood_environment === "Chaotic") shameScore += 3;
+  if (responses.childhood_environment === "Neutral") shameScore += 1;
+  
+  if (responses.usual_reaction === "Hide it") shameScore += 2;
+  if (responses.usual_reaction === "Try to fix it alone") shameScore += 1;
+  
+  const positiveQuestions = [
+    "adults_emotionally_available",
+    "comfortable_asking_help",
+    "comfortable_expressing_feelings",
+    "school_encouraged_help",
+    "feel_supported_today",
+    "rely_on_support",
+    "comfortable_vulnerability",
+  ];
+  
+  positiveQuestions.forEach(id => {
+    if (responses[id]) {
+      const value = parseInt(responses[id]);
+      if (value === 1) shameScore += 2;
+      else if (value === 2) shameScore += 1;
+    }
+  });
+  
+  const negativeQuestions = [
+    "judged_for_mistakes",
+    "ashamed_needing_help",
+  ];
+  
+  negativeQuestions.forEach(id => {
+    if (responses[id]) {
+      const value = parseInt(responses[id]);
+      if (value === 4) shameScore += 2;
+      else if (value === 3) shameScore += 1;
+    }
+  });
+  
+  if (responses.personality_type === "Introverted") shameScore += 1;
+  
+  if (responses.close_friends_count === "0") shameScore += 2;
+  if (responses.close_friends_count === "1-2") shameScore += 1;
+  
+  return shameScore;
+};
+
+const getAdaptiveQuestions = (responses) => {
+  const shameScore = calculateShameScore(responses);
+  const shuffled = shuffleArray(allFollowUpQuestions);
+  let questionsToShow;
+  
+  if (shameScore >= 10) {
+    questionsToShow = 35;
+  } else if (shameScore >= 7) {
+    questionsToShow = 28;
+  } else if (shameScore >= 4) {
+    questionsToShow = 20;
+  } else if (shameScore >= 2) {
+    questionsToShow = 15;
+  } else {
+    questionsToShow = 10;
+  }
+  
+  return shuffled.slice(0, questionsToShow);
+};
+
 export default function App() {
   const [responses, setResponses] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-  const [randomizedMainQuestions, setRandomizedMainQuestions] = useState([]);
+  const [phase, setPhase] = useState("initial");
+  const [adaptiveQuestions, setAdaptiveQuestions] = useState([]);
+  const [otherValues, setOtherValues] = useState({});
 
-  // Initialize randomized main questions on mount
-  useEffect(() => {
-    setRandomizedMainQuestions(shuffleArray(mainQuestions));
-  }, []);
-
-  // Survey structure - total questions calculated dynamically
-  const allQuestions = [
-    ...sectionA,                    // 5 questions
-    ...sectorQuestions,             // 6 questions  
-    ...randomizedMainQuestions,     // 25 questions
-    ...finalQuestions,              // final section (incl. FRQ)
-    ...consentQuestions            // 1 question
-  ];
-
-  // Organize into pages of 6 questions each
   const questionsPerPage = 6;
-  const totalPages = Math.ceil(allQuestions.length / questionsPerPage);
+
+  const getCurrentQuestionSet = () => {
+    if (phase === "initial") {
+      return initialQuestions;
+    } else if (phase === "followup") {
+      return adaptiveQuestions;
+    } else {
+      return finalQuestions;
+    }
+  };
+
+  const currentQuestionSet = getCurrentQuestionSet();
+  const totalPages = Math.ceil(currentQuestionSet.length / questionsPerPage);
   const startIndex = currentPage * questionsPerPage;
   const endIndex = startIndex + questionsPerPage;
-  const currentQuestions = allQuestions.slice(startIndex, endIndex);
+  const currentQuestions = currentQuestionSet.slice(startIndex, endIndex);
 
   const handleChange = (id, value) => {
     setResponses(prev => ({ ...prev, [id]: value }));
   };
 
+  const handleOtherChange = (id, value) => {
+    setOtherValues(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleNextPage = () => {
+    const currentPageQuestions = currentQuestions;
+    const incompleteQuestions = currentPageQuestions.filter(q => {
+      if (q.required === false) return false;
+      const response = responses[q.id];
+      if (!response) return true;
+      if (q.hasOther && response === "Other" && !otherValues[q.id]) return true;
+      return false;
+    });
+
+    if (incompleteQuestions.length > 0) {
+      alert('Please complete all required questions before continuing.');
+      return;
+    }
+
+    if (currentPage < totalPages - 1) {
+      setCurrentPage(currentPage + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (phase === "initial") {
+      const adaptive = getAdaptiveQuestions(responses);
+      setAdaptiveQuestions(adaptive);
+      setPhase("followup");
+      setCurrentPage(0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (phase === "followup") {
+      setPhase("final");
+      setCurrentPage(0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Calculate final scores for research analysis
-    const scores = calculateScores(responses);
+    const finalResponses = { ...responses };
+    Object.keys(otherValues).forEach(key => {
+      if (finalResponses[key] === "Other") {
+        finalResponses[key + "_other"] = otherValues[key];
+      }
+    });
+
+    const scores = calculateScores(finalResponses);
     
-    // Save to Google Sheets
     try {
       await saveToGoogleSheets({
-        ...responses,
+        ...finalResponses,
         scores: scores,
+        questionsAnswered: Object.keys(finalResponses).length,
+        adaptiveQuestionsCount: adaptiveQuestions.length,
         timestamp: new Date().toISOString(),
       });
       setSubmitted(true);
     } catch (error) {
       console.error("Error saving to Google Sheets:", error);
-      // Fallback: save to localStorage
       const existingData = JSON.parse(localStorage.getItem('surveyResponses') || '[]');
       existingData.push({
-        ...responses,
+        ...finalResponses,
         scores: scores,
         timestamp: new Date().toISOString(),
       });
@@ -229,49 +440,53 @@ export default function App() {
   };
 
   const calculateScores = (responses) => {
-    // Parenting Style Scores
-    const authoritative = ['p1', 'p2'].reduce((sum, id) => sum + (parseInt(responses[id]) || 0), 0) / 2;
-    const authoritarian = ['p3', 'p4'].reduce((sum, id) => sum + (parseInt(responses[id]) || 0), 0) / 2;
-    const permissive = ['p5', 'p6'].reduce((sum, id) => sum + (parseInt(responses[id]) || 0), 0) / 2;
-    const uninvolved = ['p7', 'p8'].reduce((sum, id) => sum + (parseInt(responses[id]) || 0), 0) / 2;
+    const sectionScores = {};
     
-    // Self-Esteem Score (reverse code se6)
-    const selfEsteemIds = ['se1', 'se2', 'se3', 'se4', 'se5', 'se7', 'se8', 'se9'];
-    const selfEsteem = selfEsteemIds.reduce((sum, id) => sum + (parseInt(responses[id]) || 0), 0) / selfEsteemIds.length;
-    const selfEsteemReverse = responses.se6 ? (6 - parseInt(responses.se6)) : 0; // Reverse code se6
-    const finalSelfEsteem = (selfEsteem * selfEsteemIds.length + selfEsteemReverse) / (selfEsteemIds.length + 1);
-    
-    // Social Learning Score
-    const socialLearningIds = ['sl1', 'sl2', 'sl3', 'sl4', 'sl5', 'sl6', 'sl7', 'sl8'];
-    const socialLearning = socialLearningIds.reduce((sum, id) => sum + (parseInt(responses[id]) || 0), 0) / socialLearningIds.length;
-    
-    // Determine dominant parenting style with tie handling and margin threshold
-    const parentingScores = { authoritative, authoritarian, permissive, uninvolved };
-    const scoresArray = Object.entries(parentingScores);
-    const maxValue = Math.max(...scoresArray.map(([, v]) => v));
-    const topKeys = scoresArray.filter(([, v]) => v === maxValue).map(([k]) => k);
+    const ecIds = earlyChildhoodQuestions.map(q => q.id);
+    const ecScores = ecIds.map(id => parseInt(responses[id]) || 0).filter(v => v > 0);
+    sectionScores.earlyChildhood = ecScores.length > 0 
+      ? (ecScores.reduce((a, b) => a + b, 0) / ecScores.length).toFixed(2)
+      : null;
 
-    // margin required above the second-highest to be considered dominant
-    const dominanceMargin = 0.2;
-    const sortedValuesDesc = scoresArray.map(([, v]) => v).sort((a, b) => b - a);
-    const secondValue = sortedValuesDesc[1] ?? 0;
-    const hasClearMargin = (maxValue - secondValue) >= dominanceMargin;
+    const csIds = childhoodSocialQuestions.map(q => q.id);
+    const csScores = csIds.map(id => parseInt(responses[id]) || 0).filter(v => v > 0);
+    sectionScores.childhoodSocial = csScores.length > 0
+      ? (csScores.reduce((a, b) => a + b, 0) / csScores.length).toFixed(2)
+      : null;
 
-    const dominantParenting = (topKeys.length === 1 && hasClearMargin) ? topKeys[0] : 'mixed';
+    const fdIds = familyDynamicsQuestions.map(q => q.id);
+    const fdScores = fdIds.map(id => parseInt(responses[id]) || 0).filter(v => v > 0);
+    sectionScores.familyDynamics = fdScores.length > 0
+      ? (fdScores.reduce((a, b) => a + b, 0) / fdScores.length).toFixed(2)
+      : null;
+
+    const rgIds = recoveryQuestions.map(q => q.id);
+    const rgScores = rgIds.map(id => parseInt(responses[id]) || 0).filter(v => v > 0);
+    sectionScores.recovery = rgScores.length > 0
+      ? (rgScores.reduce((a, b) => a + b, 0) / rgScores.length).toFixed(2)
+      : null;
+
+    const ssIds = supportSystemsQuestions.map(q => q.id);
+    const ssScores = ssIds.map(id => parseInt(responses[id]) || 0).filter(v => v > 0);
+    sectionScores.supportSystems = ssScores.length > 0
+      ? (ssScores.reduce((a, b) => a + b, 0) / ssScores.length).toFixed(2)
+      : null;
+
+    const rcIds = readinessQuestions.map(q => q.id);
+    const rcScores = rcIds.map(id => parseInt(responses[id]) || 0).filter(v => v > 0);
+    sectionScores.readiness = rcScores.length > 0
+      ? (rcScores.reduce((a, b) => a + b, 0) / rcScores.length).toFixed(2)
+      : null;
+
+    const allScores = [...ecScores, ...csScores, ...fdScores, ...rgScores, ...ssScores, ...rcScores];
+    const overallAverage = allScores.length > 0
+      ? (allScores.reduce((a, b) => a + b, 0) / allScores.length).toFixed(2)
+      : null;
 
     return {
-      parenting: {
-        authoritative,
-        authoritarian, 
-        permissive,
-        uninvolved,
-        dominant: dominantParenting
-      },
-      selfEsteem: finalSelfEsteem,
-      socialLearning: socialLearning,
-      stressLevel: parseInt(responses.stress_scale) || 0,
-      confidenceLevel: parseInt(responses.confidence_scale) || 0,
-      selfEsteemPerception: responses.self_esteem_perception || 'unknown'
+      sections: sectionScores,
+      overallAverage,
+      shameScoreFromInitial: calculateShameScore(responses),
     };
   };
 
@@ -293,26 +508,70 @@ export default function App() {
   const renderQuestion = (q) => {
     if (q.type === "select") {
       return (
-        <select
-          className="border rounded-lg p-2 w-full"
-          onChange={(e) => handleChange(q.id, e.target.value)}
-          value={responses[q.id] || ""}
-          required
-        >
-          <option value="">Select an option</option>
-          {q.options.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
+        <div className="space-y-2">
+          <select
+            className="border-2 border-slate-200 rounded-xl p-3 w-full focus:border-indigo-500 focus:outline-none transition-colors bg-white"
+            onChange={(e) => handleChange(q.id, e.target.value)}
+            value={responses[q.id] || ""}
+            required={q.required !== false}
+          >
+            <option value="">Select an option</option>
+            {q.options.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+          {q.hasOther && responses[q.id] === "Other" && (
+            <input
+              type="text"
+              className="border-2 border-slate-200 rounded-xl p-3 w-full focus:border-indigo-500 focus:outline-none transition-colors mt-2"
+              placeholder="Please specify..."
+              onChange={(e) => handleOtherChange(q.id, e.target.value)}
+              value={otherValues[q.id] || ""}
+              required
+            />
+          )}
+        </div>
+      );
+    } else if (q.type === "yesno") {
+      return (
+        <div className="flex gap-4">
+          {["Yes", "No"].map((option) => (
+            <label 
+              key={option} 
+              className={`flex-1 flex items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                responses[q.id] === option.toLowerCase()
+                  ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                  : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+              }`}
+            >
+              <input
+                type="radio"
+                name={q.id}
+                value={option.toLowerCase()}
+                checked={responses[q.id] === option.toLowerCase()}
+                onChange={(e) => handleChange(q.id, e.target.value)}
+                required
+                className="sr-only"
+              />
+              <span className="font-medium">{option}</span>
+            </label>
           ))}
-        </select>
+        </div>
       );
     } else if (q.type === "likert") {
-      const scale = likertScales[q.scale] || likertScales.standard;
       return (
-        <div className="space-y-2">
-          {scale.map((option) => (
-            <label key={option.value} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {likertScale.map((option) => (
+            <label 
+              key={option.value} 
+              className={`flex items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all text-center ${
+                responses[q.id] == option.value
+                  ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                  : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+              }`}
+            >
               <input
                 type="radio"
                 name={q.id}
@@ -320,9 +579,9 @@ export default function App() {
                 checked={responses[q.id] == option.value}
                 onChange={(e) => handleChange(q.id, e.target.value)}
                 required
-                className="text-blue-600"
+                className="sr-only"
               />
-              <span className="text-sm">{option.label}</span>
+              <span className="text-sm font-medium">{option.label}</span>
             </label>
           ))}
         </div>
@@ -330,149 +589,181 @@ export default function App() {
     } else if (q.type === "textarea") {
       return (
         <textarea
-          className="border rounded-lg p-3 w-full h-24 resize-none"
-          placeholder="Please share your thoughts (1-3 sentences)..."
+          className="border-2 border-slate-200 rounded-xl p-4 w-full focus:border-indigo-500 focus:outline-none transition-colors resize-none h-32"
+          placeholder="Share your thoughts here... (optional)"
           onChange={(e) => handleChange(q.id, e.target.value)}
           value={responses[q.id] || ""}
-          required
+        />
+      );
+    } else if (q.type === "number") {
+      return (
+        <input
+          type="number"
+          className="border-2 border-slate-200 rounded-xl p-3 w-full focus:border-indigo-500 focus:outline-none transition-colors"
+          onChange={(e) => handleChange(q.id, e.target.value)}
+          value={responses[q.id] || ""}
+          required={q.required !== false}
+          min={q.id === "age" ? 13 : undefined}
+          max={q.id === "age" ? 120 : undefined}
         />
       );
     } else {
       return (
         <input
           type={q.type}
-          className="border rounded-lg p-2 w-full"
-          step={q.step || undefined}
+          className="border-2 border-slate-200 rounded-xl p-3 w-full focus:border-indigo-500 focus:outline-none transition-colors"
           onChange={(e) => handleChange(q.id, e.target.value)}
           value={responses[q.id] || ""}
-          required
+          required={q.required !== false}
         />
       );
     }
   };
 
+  const getSectionName = () => {
+    if (phase === "initial") {
+      const questionIndex = currentPage * questionsPerPage;
+      if (questionIndex < 6) return "Demographics";
+      if (questionIndex < 10) return "Family & Upbringing";
+      if (questionIndex < 14) return "Health & Mental Health History";
+      if (questionIndex < 19) return "Social & Environmental Factors";
+      return "Personality & Coping";
+    } else if (phase === "followup") {
+      return "Your Personal Experiences";
+    } else {
+      return "Final Questions";
+    }
+  };
+  
+  const getPhaseLabel = () => {
+    if (phase === "initial") return "Part 1: Background";
+    if (phase === "followup") return "Part 2: Personal Experiences";
+    return "Part 3: Final Questions";
+  };
+
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-        <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-2xl text-center">
-          <div className="text-6xl mb-4">✅</div>
-          <h1 className="text-3xl font-bold mb-4 text-green-600">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-6">
+        <div className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-2xl text-center">
+          <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold mb-4 text-slate-800">
             Thank You!
           </h1>
-          <p className="text-gray-600 text-lg">
-            Your responses have been recorded. We appreciate your participation in this research study on parenting styles and academic outcomes.
+          <p className="text-slate-600 text-lg leading-relaxed">
+            Your responses have been recorded. We deeply appreciate your participation in this research study on help-seeking behaviors and emotional safety.
+          </p>
+          <p className="text-slate-500 text-sm mt-6">
+            Your answers will help us understand barriers to seeking support and ways to create safer environments.
           </p>
         </div>
       </div>
     );
   }
 
-  // Get section name based on current questions
-  const getSectionName = () => {
-    if (currentPage === 0) return "Demographics";
-    if (currentPage === 1) return "Key Areas";
-    if (currentPage === Math.ceil(allQuestions.length / questionsPerPage) - 1) return "Final Questions";
-    return "Core Psychology Questions";
-  };
+  const totalQuestionsForProgress = phase === "initial" 
+    ? initialQuestions.length + 20 + finalQuestions.length
+    : initialQuestions.length + adaptiveQuestions.length + finalQuestions.length;
+  
+  const answeredQuestions = Object.keys(responses).length;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white p-8 rounded-2xl shadow-lg">
-          <h1 className="text-3xl font-bold mb-2 text-center">
-            Parenting Styles & Academic Outcomes Research Study
-          </h1>
-          <p className="text-gray-600 text-center mb-2">
-            This survey explores how parenting styles influence self-esteem, stress management, and academic performance.
-          </p>
-          <p className="text-gray-500 text-center mb-8 text-sm">
-            Based on research by Diana Baumrind (Parenting Styles), Erik Erikson (Identity Development), and Albert Bandura (Social Learning Theory)
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-4 md:p-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white/95 backdrop-blur-sm p-6 md:p-10 rounded-3xl shadow-2xl">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-3">
+              Help-Seeking & Emotional Safety Study
+            </h1>
+            <p className="text-slate-600">
+              Understanding barriers to seeking support and building emotional safety
+            </p>
+          </div>
 
-          {/* Progress bar */}
           <div className="mb-8">
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>Progress</span>
-              <span>{Object.keys(responses).length} / {allQuestions.length}</span>
+            <div className="flex justify-between text-sm text-slate-600 mb-2">
+              <span className="font-medium">{getSectionName()}</span>
+              <span>{answeredQuestions} answered</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
               <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(Object.keys(responses).length / allQuestions.length) * 100}%` }}
+                className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2.5 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min((answeredQuestions / totalQuestionsForProgress) * 100, 100)}%` }}
               ></div>
             </div>
+            <div className="flex justify-between text-xs text-slate-500 mt-2">
+              <span>Page {currentPage + 1} of {totalPages}</span>
+              <span>{getPhaseLabel()}</span>
+            </div>
           </div>
 
-          {/* Show current section name */}
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">
-              Page {currentPage + 1} of {totalPages}: {getSectionName()}
-            </h2>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-8">
             {currentQuestions.map((question, index) => (
-              <div key={question.id} className="border-b border-gray-200 pb-6">
-                <div className="flex items-start space-x-2 mb-3">
-                  <span className="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded">
+              <div 
+                key={question.id} 
+                className="bg-slate-50 rounded-2xl p-5 border border-slate-100"
+              >
+                <div className="flex items-start gap-3 mb-4">
+                  <span className="flex-shrink-0 w-8 h-8 bg-indigo-100 text-indigo-700 rounded-lg flex items-center justify-center text-sm font-bold">
                     {startIndex + index + 1}
                   </span>
-                  <label className="font-medium text-gray-900 text-lg leading-relaxed">
+                  <label className="font-medium text-slate-800 text-lg leading-relaxed pt-0.5">
                     {question.label}
+                    {question.required === false && (
+                      <span className="text-slate-400 text-sm font-normal ml-2">(optional)</span>
+                    )}
                   </label>
                 </div>
                 {renderQuestion(question)}
               </div>
             ))}
             
-            <div className="pt-6 flex justify-between">
+            <div className="pt-6 flex justify-between items-center">
               {currentPage > 0 && (
                 <button
                   type="button"
                   onClick={() => {
                     setCurrentPage(currentPage - 1);
-                    // Scroll to top of page
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 font-medium transition-colors"
                 >
-                  Previous
+                  ← Previous
                 </button>
               )}
               
               <div className="ml-auto">
-                {currentPage < totalPages - 1 ? (
+                {phase === "final" && currentPage === totalPages - 1 ? (
                   <button
-                    type="button"
-                    onClick={() => {
-                      // Check if current page is completed
-                      const currentPageQuestions = currentQuestions.map(q => q.id);
-                      const completedQuestions = currentPageQuestions.filter(id => responses[id]).length;
-                      
-                      if (completedQuestions === currentPageQuestions.length) {
-                        setCurrentPage(currentPage + 1);
-                        // Scroll to top of page
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      } else {
-                        alert('Please complete all questions before continuing.');
-                      }
-                    }}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    type="submit"
+                    className="px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:from-emerald-700 hover:to-teal-700 font-medium transition-all shadow-lg shadow-emerald-500/30"
                   >
-                    Next Page
+                    Submit Survey ✓
                   </button>
                 ) : (
                   <button
-                    type="submit"
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    type="button"
+                    onClick={handleNextPage}
+                    className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 font-medium transition-all shadow-lg shadow-indigo-500/30"
                   >
-                    Submit Survey
+                    {phase === "initial" && currentPage === totalPages - 1 
+                      ? "Continue to Part 2 →" 
+                      : phase === "followup" && currentPage === totalPages - 1
+                        ? "Continue to Final Questions →"
+                        : "Next →"}
                   </button>
                 )}
               </div>
             </div>
           </form>
         </div>
+
+        <p className="text-center text-slate-400 text-sm mt-6">
+          All responses are anonymous and confidential
+        </p>
       </div>
     </div>
   );
