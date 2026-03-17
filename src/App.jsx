@@ -695,7 +695,7 @@ export default function App() {
               <>
                 <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
                   <p className="text-slate-700 text-base leading-relaxed">
-                    This study is being conducted as part of a class project. Your name will not be collected. There are no serious risks in this study. If a question makes you uncomfortable, you may skip it.
+                    This study is being conducted as an independent research study. Your name will not be collected. There are no serious risks in this study. If a question makes you uncomfortable, you may skip it.
                   </p>
                 </div>
                 <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
