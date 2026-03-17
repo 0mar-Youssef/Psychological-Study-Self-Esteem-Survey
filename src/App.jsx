@@ -344,14 +344,16 @@ export default function App() {
   const [responses, setResponses] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-  const [phase, setPhase] = useState("initial");
+  const [phase, setPhase] = useState("intro");
   const [adaptiveQuestions, setAdaptiveQuestions] = useState([]);
   const [otherValues, setOtherValues] = useState({});
 
   const questionsPerPage = 6;
 
   const getCurrentQuestionSet = () => {
-    if (phase === "initial") {
+    if (phase === "intro") {
+      return [];
+    } else if (phase === "initial") {
       return initialQuestions;
     } else if (phase === "followup") {
       return adaptiveQuestions;
@@ -361,7 +363,7 @@ export default function App() {
   };
 
   const currentQuestionSet = getCurrentQuestionSet();
-  const totalPages = Math.ceil(currentQuestionSet.length / questionsPerPage);
+  const totalPages = phase === "intro" ? 1 : Math.ceil(currentQuestionSet.length / questionsPerPage);
   const startIndex = currentPage * questionsPerPage;
   const endIndex = startIndex + questionsPerPage;
   const currentQuestions = currentQuestionSet.slice(startIndex, endIndex);
@@ -375,17 +377,19 @@ export default function App() {
   };
 
   const handleNextPage = () => {
-    const currentPageQuestions = currentQuestions;
-    const incompleteQuestions = currentPageQuestions.filter(q => {
-      if (q.required === false) return false;
-      const response = responses[q.id];
-      if (!response) return true;
-      if (q.hasOther && response === "Other" && !otherValues[q.id]) return true;
-      return false;
-    });
-
-    if (incompleteQuestions.length > 0) {
-      alert('Please complete all required questions before continuing.');
+    if (phase === "intro") {
+      const consent = responses["consent_participate"];
+      if (!consent) {
+        alert("Please indicate whether you agree to participate before continuing.");
+        return;
+      }
+      if (consent === "disagree") {
+        alert("You have declined to participate. Thank you for your interest.");
+        return;
+      }
+      setPhase("initial");
+      setCurrentPage(0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -513,7 +517,6 @@ export default function App() {
             className="border-2 border-slate-200 rounded-xl p-3 w-full focus:border-indigo-500 focus:outline-none transition-colors bg-white"
             onChange={(e) => handleChange(q.id, e.target.value)}
             value={responses[q.id] || ""}
-            required={q.required !== false}
           >
             <option value="">Select an option</option>
             {q.options.map((opt) => (
@@ -529,7 +532,6 @@ export default function App() {
               placeholder="Please specify..."
               onChange={(e) => handleOtherChange(q.id, e.target.value)}
               value={otherValues[q.id] || ""}
-              required
             />
           )}
         </div>
@@ -552,7 +554,6 @@ export default function App() {
                 value={option.toLowerCase()}
                 checked={responses[q.id] === option.toLowerCase()}
                 onChange={(e) => handleChange(q.id, e.target.value)}
-                required
                 className="sr-only"
               />
               <span className="font-medium">{option}</span>
@@ -578,7 +579,6 @@ export default function App() {
                 value={option.value}
                 checked={responses[q.id] == option.value}
                 onChange={(e) => handleChange(q.id, e.target.value)}
-                required
                 className="sr-only"
               />
               <span className="text-sm font-medium">{option.label}</span>
@@ -602,7 +602,6 @@ export default function App() {
           className="border-2 border-slate-200 rounded-xl p-3 w-full focus:border-indigo-500 focus:outline-none transition-colors"
           onChange={(e) => handleChange(q.id, e.target.value)}
           value={responses[q.id] || ""}
-          required={q.required !== false}
           min={q.id === "age" ? 13 : undefined}
           max={q.id === "age" ? 120 : undefined}
         />
@@ -614,13 +613,13 @@ export default function App() {
           className="border-2 border-slate-200 rounded-xl p-3 w-full focus:border-indigo-500 focus:outline-none transition-colors"
           onChange={(e) => handleChange(q.id, e.target.value)}
           value={responses[q.id] || ""}
-          required={q.required !== false}
         />
       );
     }
   };
 
   const getSectionName = () => {
+    if (phase === "intro") return "Study Information";
     if (phase === "initial") {
       const questionIndex = currentPage * questionsPerPage;
       if (questionIndex < 6) return "Demographics";
@@ -636,6 +635,7 @@ export default function App() {
   };
   
   const getPhaseLabel = () => {
+    if (phase === "intro") return "Study Information & Consent";
     if (phase === "initial") return "Part 1: Background";
     if (phase === "followup") return "Part 2: Personal Experiences";
     return "Part 3: Final Questions";
@@ -644,20 +644,10 @@ export default function App() {
   if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-6">
-        <div className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-2xl text-center">
-          <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold mb-4 text-slate-800">
-            Thank You!
-          </h1>
+        <div className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-2xl">
+          <h2 className="text-2xl font-bold mb-4 text-slate-800">Debrief</h2>
           <p className="text-slate-600 text-lg leading-relaxed">
-            Your responses have been recorded. We deeply appreciate your participation in this research study on help-seeking behaviors and emotional safety.
-          </p>
-          <p className="text-slate-500 text-sm mt-6">
-            Your answers will help us understand barriers to seeking support and ways to create safer environments.
+            Thank you for participating in this study. If you have questions or want to learn more about the study, please contact ayahij2005@gmail.com
           </p>
         </div>
       </div>
@@ -701,32 +691,73 @@ export default function App() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            {currentQuestions.map((question, index) => (
-              <div 
-                key={question.id} 
-                className="bg-slate-50 rounded-2xl p-5 border border-slate-100"
-              >
-                <div className="flex items-start gap-3 mb-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-indigo-100 text-indigo-700 rounded-lg flex items-center justify-center text-sm font-bold">
-                    {startIndex + index + 1}
-                  </span>
-                  <label className="font-medium text-slate-800 text-lg leading-relaxed pt-0.5">
-                    {question.label}
-                    {question.required === false && (
-                      <span className="text-slate-400 text-sm font-normal ml-2">(optional)</span>
-                    )}
-                  </label>
+            {phase === "intro" ? (
+              <>
+                <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                  <p className="text-slate-700 text-base leading-relaxed">
+                    This study is being conducted as part of a class project. Your name will not be collected. There are no serious risks in this study. If a question makes you uncomfortable, you may skip it.
+                  </p>
                 </div>
-                {renderQuestion(question)}
-              </div>
-            ))}
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                  <label className="font-medium text-slate-800 text-lg leading-relaxed block mb-4">
+                    Do you understand the information above and agree to participate in this study?
+                  </label>
+                  <div className="flex gap-4">
+                    {["I agree", "I do not agree"].map((option) => (
+                      <label 
+                        key={option} 
+                        className={`flex-1 flex items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                          responses["consent_participate"] === (option === "I agree" ? "agree" : "disagree")
+                            ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                            : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="consent_participate"
+                          value={option === "I agree" ? "agree" : "disagree"}
+                          checked={responses["consent_participate"] === (option === "I agree" ? "agree" : "disagree")}
+                          onChange={(e) => handleChange("consent_participate", e.target.value)}
+                          className="sr-only"
+                        />
+                        <span className="font-medium">{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              currentQuestions.map((question, index) => (
+                <div 
+                  key={question.id} 
+                  className="bg-slate-50 rounded-2xl p-5 border border-slate-100"
+                >
+                  <div className="flex items-start gap-3 mb-4">
+                    <span className="flex-shrink-0 w-8 h-8 bg-indigo-100 text-indigo-700 rounded-lg flex items-center justify-center text-sm font-bold">
+                      {startIndex + index + 1}
+                    </span>
+                    <label className="font-medium text-slate-800 text-lg leading-relaxed pt-0.5">
+                      {question.label}
+                      {question.required === false && (
+                        <span className="text-slate-400 text-sm font-normal ml-2">(optional)</span>
+                      )}
+                    </label>
+                  </div>
+                  {renderQuestion(question)}
+                </div>
+              ))
+            )}
             
             <div className="pt-6 flex justify-between items-center">
-              {currentPage > 0 && (
+              {(currentPage > 0 || (phase === "initial" && currentPage === 0)) && (
                 <button
                   type="button"
                   onClick={() => {
-                    setCurrentPage(currentPage - 1);
+                    if (phase === "initial" && currentPage === 0) {
+                      setPhase("intro");
+                    } else {
+                      setCurrentPage(currentPage - 1);
+                    }
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   className="px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 font-medium transition-colors"
