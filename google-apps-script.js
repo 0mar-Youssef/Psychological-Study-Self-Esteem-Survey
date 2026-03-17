@@ -6,7 +6,7 @@ function doPost(e) {
     
     let sheet = SpreadsheetApp.getActiveSheet();
     if (!sheet) {
-      const spreadsheetId = 'YOUR_SPREADSHEET_ID_HERE';
+      const spreadsheetId = '1A3DXr2e1TqpPwy2YmHlTpEBqzKOu6pJy2ND_7mk0onI';
       const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
       sheet = spreadsheet.getActiveSheet();
     }
